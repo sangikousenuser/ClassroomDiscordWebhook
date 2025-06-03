@@ -268,3 +268,40 @@ function checkAllMyCoursesAndNotify() {
     console.log('監視対象のコースが見つかりませんでした。');
   }
 }
+// =========================================================================
+// ★★★ 過去の通知履歴をリセットする関数 ★★★
+// =========================================================================
+function resetNotificationHistory() {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const keysToDelete = [];
+
+  // 全てのプロパティキーを取得
+  const allKeys = scriptProperties.getKeys();
+
+  // 通知履歴に関連するキーを特定
+  // キーのパターン: LAST_PROCESSED_ANNOUNCEMENT_DATE_コースID
+  // キーのパターン: LAST_PROCESSED_COURSEWORK_DATE_コースID
+  allKeys.forEach(function(key) {
+    if (key.startsWith('LAST_PROCESSED_ANNOUNCEMENT_DATE_') || key.startsWith('LAST_PROCESSED_COURSEWORK_DATE_')) {
+      keysToDelete.push(key);
+    }
+  });
+
+  if (keysToDelete.length > 0) {
+    console.log(`以下の通知履歴プロパティを削除します (${keysToDelete.length}件):`);
+    keysToDelete.forEach(function(key) {
+      scriptProperties.deleteProperty(key);
+      console.log(` - 削除しました: ${key}`);
+    });
+    console.log('通知履歴のリセットが完了しました。次回の通常実行時に、全ての投稿が再通知の対象となります。');
+    // スクリプトエディタ内で実行した場合にダイアログを表示
+    if (typeof Browser !== 'undefined' && Browser.msgBox) {
+      Browser.msgBox('通知履歴のリセット完了', `削除されたプロパティキーは ${keysToDelete.length} 件です。詳細はログを確認してください。`, Browser.Buttons.OK);
+    }
+  } else {
+    console.log('削除対象の通知履歴プロパティは見つかりませんでした。');
+    if (typeof Browser !== 'undefined' && Browser.msgBox) {
+      Browser.msgBox('通知履歴リセット', '削除対象の通知履歴プロパティは見つかりませんでした。', Browser.Buttons.OK);
+    }
+  }
+}
